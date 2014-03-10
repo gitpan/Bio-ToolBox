@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 # documentation at end of file
 
@@ -23,7 +23,7 @@ use Bio::ToolBox::file_helper qw(
 	write_tim_data_file
 	convert_and_write_to_gff_file
 );
-my $VERSION = '1.14';
+my $VERSION = '1.15';
 
 print "\n This script will map transcription-enriched windows to gene transcripts\n\n";
 
@@ -1333,9 +1333,10 @@ strands.
 
 =item --db <database_name>
 
-Specify a Bioperl Bio::DB::SeqFeature::Store database. Required for 
-generating the transcription fragment enriched_regions files. It may 
-be gleaned from the metadata of the provided enriched_region files.
+Specify the name of a C<Bio::DB::SeqFeature::Store> annotation database 
+from which gene or feature annotation may be derived. For more 
+information about using annotation databases, see 
+L<https://code.google.com/p/biotoolbox/wiki/WorkingWithDatabases>. 
 
 =item --win <integer>
 

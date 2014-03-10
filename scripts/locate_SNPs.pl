@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 # documentation at end of file
 
@@ -17,7 +17,7 @@ use Bio::ToolBox::file_helper qw(
 	open_tim_data_file 
 	write_tim_data_file
 );
-my $VERSION = '1.14';
+my $VERSION = '1.15';
 
 
 
@@ -645,9 +645,10 @@ the command.
 
 =item --db <database>
 
-Specify the name of a Bio::DB::SeqFeature::Store database that contains 
-the genome annotation and sequence. Alternatively, for small genomes, 
-a single GFF3 genome annotation file may be provided for loading into memory.
+Specify the name of a C<Bio::DB::SeqFeature::Store> annotation database 
+from which gene or feature annotation may be derived. For more 
+information about using annotation databases, see 
+L<https://code.google.com/p/biotoolbox/wiki/WorkingWithDatabases>. 
 
 =item --features type1,type2,...
 

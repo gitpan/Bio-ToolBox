@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 # documentation at end of file
 
@@ -31,7 +31,7 @@ eval {
 	$parallel = 1;
 };
 # use Data::Dumper;
-my $VERSION = '1.14.1';
+my $VERSION = '1.15';
 
 print "\n This script will find enriched regions for a specific data set\n\n";
 
@@ -1139,11 +1139,11 @@ The command line flags and descriptions:
 
 =item --db <name>
 
-Specify the name or file of a Bio::DB::SeqFeature::Store database 
-or BigWigSet database from which to collect chromosomes, data scores, 
-and/or overlapping feature annotations. Features may only be 
-collected from a SeqFeature::Store databases. This may be skipped 
-if a big file (bigWig, bigBed, or Bam) file is provided as the dataset.
+Specify the name of a C<Bio::DB::SeqFeature::Store> annotation database 
+from which gene or feature annotation may be derived. A database is 
+required for generating new data files with features. For more information 
+about using annotation databases, 
+see L<https://code.google.com/p/biotoolbox/wiki/WorkingWithDatabases>. 
 
 =item --ddb <name>
 

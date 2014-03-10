@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 # documentation at end of file
 
@@ -16,7 +16,7 @@ use Bio::ToolBox::file_helper qw(
 	open_to_write_fh
 );
 
-my $VERSION = '1.14';
+my $VERSION = '1.15';
 
 print "\n This program will convert a data file to fasta\n\n";
 
@@ -298,13 +298,14 @@ compressed with gzip.
 
 =item --db <name|file|directory>
 
-Provide the name of a Bio::DB::SeqFeature::Store database from which to 
-collect the genomic sequence. A relational database name, SQLite file, or 
-GFF3 file with sequence may be provided. Alternatively, provide the name 
-of an uncompressed Fasta file (multi-fasta is ok) or directory containing 
-multiple fasta files representing the genomic sequence. The directory 
-must be writeable for a small index file to be written. The database 
-name may be obtained from the input file metadata. Required.
+Provide the name of an uncompressed Fasta file (multi-fasta is ok) or 
+directory containing multiple fasta files representing the genomic 
+sequence. The directory must be writeable for a small index file to be 
+written. Alternatively, the name of a Bio::DB::SeqFeature::Store 
+annotation database that contains genomic sequence may be provided. 
+For more information about using databases, see 
+L<https://code.google.com/p/biotoolbox/wiki/WorkingWithDatabases>.  
+The database name may be obtained from the input file metadata. Required.
 
 =item --id <index>
 

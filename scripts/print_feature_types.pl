@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 # documentation at end of file
 
@@ -9,7 +9,7 @@ use Bio::ToolBox::db_helper qw(
 	open_db_connection
 	get_dataset_list
 );
-my $VERSION = '1.14';
+my $VERSION = '1.15';
 
 print "\n A script to print all available feature types in a database\n\n";
 
@@ -141,8 +141,10 @@ The command line flags and descriptions:
 
 =item --db <database>
 
-Specify the name of a Bio::DB::SeqFeature::Store database, or a BigWigSet 
-directory.
+Specify the name of a C<Bio::DB::SeqFeature::Store> annotation database 
+from which gene or feature annotation may be derived. For more information 
+about using annotation databases, 
+see L<https://code.google.com/p/biotoolbox/wiki/WorkingWithDatabases>. 
 
 =item --version
 

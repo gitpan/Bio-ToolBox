@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 # documentation at end of file
 
@@ -19,7 +19,7 @@ use Bio::ToolBox::file_helper qw(
 	load_tim_data_file
 	write_tim_data_file
 );
-my $VERSION = '1.14';
+my $VERSION = '1.15';
 
 print "\n This program will verify the mapping of nucleosomes\n\n";
 
@@ -616,10 +616,10 @@ is allowed. The file may be compressed with gzip.
 
 =item --db <text>
 
-Specify the name of a BioPerl database to pull the source data. A 
-SeqFeature::Store database or BigWigSet directory may be supplied. 
-The default is to use the database defined in the input file metadata 
-or the dataset file. 
+Specify the name of a C<Bio::DB::SeqFeature::Store> annotation database 
+from which gene or feature annotation may be derived. For more 
+information about using annotation databases, see 
+L<https://code.google.com/p/biotoolbox/wiki/WorkingWithDatabases>. 
 
 =item --data <text | filename>
 

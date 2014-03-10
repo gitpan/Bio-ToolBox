@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 # documentation at end of file
 
@@ -15,7 +15,7 @@ use Bio::ToolBox::file_helper qw(
 );
 use Bio::ToolBox::db_helper::config qw($BTB_CONFIG add_program);
 use Bio::ToolBox::big_helper qw(wig_to_bigwig_conversion);
-my $VERSION = '1.14.1';
+my $VERSION = '1.15';
 
 print "\n This program will convert bar files to a wig file\n";
 
@@ -745,9 +745,11 @@ the system path is searched for the executable.
 
 =item --db <database>
 
-Specify the name or path to a Bio::DB database from which to extract 
-chromosome names and sizes. This information is only required when 
-generating a bigWig file.
+Specify the name of a C<Bio::DB::SeqFeature::Store> annotation database 
+or other indexed data file, e.g. Bam or bigWig file, from which chromosome 
+length information may be obtained. For more information about using databases, 
+see L<https://code.google.com/p/biotoolbox/wiki/WorkingWithDatabases>. It 
+is only required when generating a bigWig file.
 
 =item --chromof </path/to/chromosomes>
 

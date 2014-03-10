@@ -6,7 +6,7 @@ build_requires: {}
 configure_requires:
   Module::Build: 0
 dynamic_config: 1
-generated_by: 'Module::Build version 0.4204, CPAN::Meta::Converter version 2.120921'
+generated_by: 'Module::Build version 0.4205, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -15,10 +15,10 @@ name: Bio-ToolBox
 provides:
   Bio::ToolBox:
     file: lib/Bio/ToolBox.pm
-    version: v1.14.1
+    version: 1.15
   Bio::ToolBox::Data:
     file: lib/Bio/ToolBox/Data.pm
-    version: 1.14
+    version: 1.15
   Bio::ToolBox::Data::Feature:
     file: lib/Bio/ToolBox/Data.pm
     version: 0
@@ -33,16 +33,16 @@ provides:
     version: 1.14
   Bio::ToolBox::db_helper:
     file: lib/Bio/ToolBox/db_helper.pm
-    version: 1.14
+    version: 1.15
   Bio::ToolBox::db_helper::bam:
     file: lib/Bio/ToolBox/db_helper/bam.pm
-    version: v1.14.1
+    version: 1.15
   Bio::ToolBox::db_helper::bigbed:
     file: lib/Bio/ToolBox/db_helper/bigbed.pm
-    version: v1.14.1
+    version: 1.15
   Bio::ToolBox::db_helper::bigwig:
     file: lib/Bio/ToolBox/db_helper/bigwig.pm
-    version: v1.14.1
+    version: 1.15
   Bio::ToolBox::db_helper::config:
     file: lib/Bio/ToolBox/db_helper/config.pm
     version: 1.14
@@ -51,13 +51,13 @@ provides:
     version: 1.14
   Bio::ToolBox::db_helper::useq:
     file: lib/Bio/ToolBox/db_helper/useq.pm
-    version: v1.14.1
+    version: 1.15
   Bio::ToolBox::db_helper::wiggle:
     file: lib/Bio/ToolBox/db_helper/wiggle.pm
     version: 1.14
   Bio::ToolBox::file_helper:
     file: lib/Bio/ToolBox/file_helper.pm
-    version: 1.14
+    version: 1.15
 recommends:
   Algorithm::Cluster: 0
   DBD::SQLite: 0
@@ -77,4 +77,4 @@ requires:
   Statistics::Lite: 3.2
 resources:
   license: http://dev.perl.org/licenses/
-version: v1.14.1
+version: 1.15

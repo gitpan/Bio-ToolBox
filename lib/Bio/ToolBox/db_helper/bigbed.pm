@@ -6,7 +6,7 @@ use strict;
 use Carp;
 use Statistics::Lite qw(mean);
 use Bio::DB::BigBed;
-our $VERSION = '1.14.1';
+our $VERSION = '1.15';
 
 
 # Exported names
@@ -24,6 +24,10 @@ our %BIGBED_CHROMOS;
 	# that could lead to an exception
 	# we will record the chromosomes list in this hash
 	# $BIGBED_CHROMOS{bigfile}{chromos}
+
+# Opened bigBed db objects
+our %OPENED_BB;
+	# a cache for opened BigBed databases, primarily for collecting scores
 
 # The true statement
 1; 
@@ -50,12 +54,22 @@ sub collect_bigbed_scores {
 	
 	# look at each bedfile
 	# usually there is only one, but for stranded data there may be 
-	# two bedfiles (+ and -), so we'll check each wig file for strand info
+	# two bedfiles (+ and -), so we'll check each bed file for strand info
 	foreach my $bedfile (@bed_features) {
 	
 		# open the bedfile
-		my $bb = open_bigbed_db($bedfile) or 
-			croak "Unable to open bigBed file '$bedfile'! $!\n";
+		my $bb;
+		if (exists $OPENED_BB{$bedfile}) {
+			# use a cached object
+			$bb = $OPENED_BB{$bedfile};
+		}
+		else {
+			# open and cache the bigWig object
+			$bb = open_bigbed_db($bedfile) or 
+				croak " Unable to open bigBed file '$bedfile'! $!\n";
+			$OPENED_BB{$bedfile} = $bb;
+			%{ $BIGBED_CHROMOS{$bedfile} } = map { $_ => 1 } $bb->seq_ids;
+		}
 			
 		# first check that the chromosome is present
 		unless (exists $BIGBED_CHROMOS{$bedfile}{$chromo}) {
@@ -126,12 +140,22 @@ sub collect_bigbed_position_scores {
 	
 	# look at each bedfile
 	# usually there is only one, but for stranded data there may be 
-	# two bedfiles (+ and -), so we'll check each wig file for strand info
+	# two bedfiles (+ and -), so we'll check each bed file for strand info
 	foreach my $bedfile (@bed_features) {
 	
-		# check for opened bedfile
-		my $bb = open_bigbed_db($bedfile) or 
-			croak "Unable to open bigBed file '$bedfile'! $!\n";
+		# open the bedfile
+		my $bb;
+		if (exists $OPENED_BB{$bedfile}) {
+			# use a cached object
+			$bb = $OPENED_BB{$bedfile};
+		}
+		else {
+			# open and cache the bigWig object
+			$bb = open_bigwig_db($bedfile) or 
+				croak " Unable to open bigBed file '$bedfile'! $!\n";
+			$OPENED_BB{$bedfile} = $bb;
+			%{ $BIGBED_CHROMOS{$bedfile} } = map { $_ => 1 } $bb->seq_ids;
+		}
 			
 		# first check that the chromosome is present
 		unless (exists $BIGBED_CHROMOS{$bedfile}{$chromo}) {
@@ -233,9 +257,6 @@ sub open_bigbed_db {
 		$bb = Bio::DB::BigBed->new($path);
 	};
 	return unless $bb;
-	
-	# collect the chromosomes for this bigBed file
-	%{ $BIGBED_CHROMOS{$bedfile} } = map { $_ => 1 } $bb->seq_ids;
 	
 	return $bb;
 }

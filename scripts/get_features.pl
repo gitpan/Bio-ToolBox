@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
 # documentation at end of file
 
@@ -19,7 +19,7 @@ use Bio::ToolBox::file_helper qw(
 	write_tim_data_file
 );
 use Bio::ToolBox::db_helper::config;
-my $VERSION = '1.14';
+my $VERSION = '1.15';
 
 print "\n This program will collect features from a database\n\n";
 
@@ -594,9 +594,11 @@ The command line flags and descriptions:
 
 =item --db <text>
 
-Specify the name or SQLite file of the Bio::DB:SeqFeature::Store 
-database from which to collect the features. Other database schemas 
-are not currently supported. Required.
+Specify the name of a C<Bio::DB::SeqFeature::Store> annotation database 
+from which gene or feature annotation may be derived. A database is 
+required for generating new data files with features. For more information 
+about using annotation databases, 
+see L<https://code.google.com/p/biotoolbox/wiki/WorkingWithDatabases>. 
 
 =item --feature <type | type:source>
 
