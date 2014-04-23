@@ -40,7 +40,7 @@ use constant {
 	LOG2            => log(2),
 	LOG10           => log(10),
 };
-my $VERSION = '1.16';
+my $VERSION = '1.17';
 	
 	
 
@@ -873,10 +873,12 @@ sub calculate_strand_correlation {
 			# calculate correlation
 			my $stat = Statistics::LineFit->new();
 			$stat->setData(\@r, \@f) or warn " bad data!\n";
-			my $r2 = $stat->rSquared();
-			push @r2_values, $r2;
+			my $r2 = $stat->rSquared() || 0;
+				# this may produce errors when all values are equal
+				# as might happen with high duplicate coverage 
 			
 			# check correlation
+			push @r2_values, $r2;
 			if ($r2 >= $correlation_min and $r2 > $best_r) {
 				# record new values
 				$best_shift = $i * 10;
@@ -2233,8 +2235,9 @@ sub convert_to_bigwig {
 	foreach my $file (@files) {
 		next unless defined $file;
 		my $bw_file = wig_to_bigwig_conversion(
-			'wig'   => $file,
-			'db'    => $sam,
+			'wig'       => $file,
+			'db'        => $sam,
+			'bwapppath' => $bwapp,
 		);
 		if ($bw_file) {
 			print " Converted to $bw_file\n";
@@ -2259,31 +2262,41 @@ A script to enumerate Bam alignments or coverage into a wig file.
 
 bam2wig.pl [--options...] <filename.bam>
   
-  Options:
+  Required options:
   --in <filename.bam>
-  --out <filename> 
-  --position [start|mid|span|extend]
+  
+  Reporting options:
+  --position [start|mid|span|extend]                (start)
   --coverage
-  --splice|split
-  --pe
   --bin <integer>
-  --shift
-  --shiftval <integer>
-  --sample <integer>
-  --chrom <integer>
-  --minr <float>
-  --model
   --strand
   --flip
-  --qual <integer>
-  --max <integer>
-  --max_cnt <integer>
   --rpm
   --log [2|10]
+  --max <integer>
+  
+  Alignment options:
+  --pe
+  --splice
+  --qual <integer>
+  
+  Shift options:
+  --shift
+  --shiftval <integer>
+  --chrom <integer>                                 (2)
+  --sample <integer>                                (200)
+  --minr <float>                                    (0.25)
+  --model
+  
+  Output options:
+  --out <filename> 
   --bw
   --bwapp </path/to/wigToBigWig or /path/to/bedGraphToBigWig>
   --gz
-  --cpu <integer>
+  
+  General options:
+  --cpu <integer>                                   (2)
+  --max_cnt <integer>
   --buffer <integer>
   --count <integer>
   --verbose
@@ -2300,12 +2313,6 @@ The command line flags and descriptions:
 
 Specify the input Bam alignment file. The file should be sorted by 
 genomic position and indexed, although it may be indexed automatically.
-
-=item --out <filename>
-
-Specify the output base filename. An appropriate extension will be 
-added automatically. By default it uses the base name of the 
-input file.
 
 =item --position [start|mid|span|extend]
 
@@ -2333,16 +2340,52 @@ the position, quality, strand, shift, and log options. It is
 equivalent to specifying --position=span, --split, --nope, --noshift, 
 --nostrand, --qual=0, --max=8000, --norpm, and no log. 
 
-=item --splice
+=item --bin <integer>
 
-=item --split
+Specify the window or bin size in which alignment counts are summed. 
+This option is compatible with start, mid, and coverage recording 
+options, but is automatically disabled with span and extend recording 
+options. The default is to count at single basepair resolution. 
 
-The Bam file alignments may contain splices, where the 
-read is split between two separate alignments. This is most common 
-with splice junctions from RNA-Seq data. In this case, treat each 
-alignment as a separate tag. This only works with single-end alignments. 
-Splices are disabled for paired-end reads. Note that this will 
-increase processing time.
+=item --strand
+
+Indicate that separate wig files should be written for each strand. 
+The output file basename is appended with either '_f' or '_r' for 
+both files. For paired-end RNA-Seq alignments that were generated with 
+TopHat, the XS attribute is honored for strand information. 
+The default is to take all alignments regardless of strand.
+
+=item --flip
+
+Flip the strand of the output files when generating stranded wig files. 
+Do this when RNA-Seq alignments map to the opposite strand of the 
+coding sequence. 
+
+=item --rpm
+
+Convert the data to Reads (or Fragments) Per Million mapped. This is useful 
+for comparing read coverage between different datasets. Only alignments 
+that match the minimum mapping quality are counted. Only proper paired-end 
+alignments are counted, they are counted as one fragment. The conversion is 
+applied before converting to log, if requested. This will increase processing 
+time, as the alignments must first be counted. Note that all duplicate reads 
+are counted during the pre-count. The default is no RPM conversion. 
+
+=item --log [2|10]
+
+Transform the count to a log scale. Specify the base number, 2 or 
+10. Only really useful with Bam alignment files with high count numbers. 
+Default is to not transform the count.
+
+=item --max <integer>
+
+Set a maximum number of duplicate alignments tolerated at a single position. 
+This uses the alignment start (or midpoint if recording midpoint) position 
+to determine duplicity. Note that this has no effect in coverage mode. 
+You may want to set a limit when working with random fragments (sonication) 
+to avoid PCR bias. Note that setting this value in conjunction with the --rpm 
+option may result in lower coverage than anticipated, since the pre-count 
+does not account for duplicity. The default is undefined (no limit). 
 
 =item --pe
 
@@ -2352,12 +2395,23 @@ include FR reads on the same chromosome, and not FF, RR, RF, or
 pairs aligning to separate chromosomes. The default is to 
 treat all alignments as single-end.
 
-=item --bin <integer>
+=item --splice
 
-Specify the window or bin size in which alignment counts are summed. 
-This option is compatible with start, mid, and coverage recording 
-options, but is automatically disabled with span and extend recording 
-options. The default is to count at single basepair resolution. 
+The Bam file alignments may contain splices, where the 
+read is split between two separate alignments. This is most common 
+with splice junctions from RNA-Seq data. In this case, treat each 
+alignment as a separate tag. This only works with single-end alignments. 
+Splices are disabled for paired-end reads. Note that this will 
+increase processing time.
+
+=item --qual <integer>
+
+Set a minimum mapping quality score of alignments to count. The mapping
+quality score is a posterior probability that the alignment was mapped
+incorrectly, and reported as a -10Log10(P) value, rounded to the nearest
+integer (range 0..255). Higher numbers are more stringent. For performance
+reasons, when counting paired-end reads, only the left alignment is
+checked. The default value is 0 (accept everything).
 
 =item --shift
 
@@ -2378,11 +2432,6 @@ The value should be 1/2 the average length of the insert library
 that was sequenced. The default is to empirically determine the 
 appropriate shift value. See below for the approach.
 
-=item --sample <integer>
-
-Indicate the number of top regions to sample when empirically 
-determining the shift value. The default is 200.
-
 =item --chrom <integer>
 
 Indicate the number of sequences or chromosomes to sample when 
@@ -2390,6 +2439,12 @@ empirically determining the shift value. The reference sequences
 listed in the Bam file header are taken in order of decreasing 
 length, and one or more are taken as a representative sample of 
 the genome. The default value is 2. 
+
+=item --sample <integer>
+
+Indicate the number of top coverage regions from each chromosome 
+scanned to sample when empirically determining the shift value. 
+The default is 200.
 
 =item --minr <float>
 
@@ -2407,59 +2462,11 @@ as  well as the shifted profile. A standard text file is generated
 using the output base name. The default is to not write the model 
 shift data.
 
-=item --strand
+=item --out <filename>
 
-Indicate that separate wig files should be written for each strand. 
-The output file basename is appended with either '_f' or '_r' for 
-both files. For paired-end RNA-Seq alignments that were generated with 
-TopHat, the XS attribute is honored for strand information. 
-The default is to take all alignments regardless of strand.
-
-=item --flip
-
-Flip the strand of the output files when generating stranded wig files. 
-Do this when RNA-Seq alignments map to the opposite strand of the 
-coding sequence. 
-
-=item --qual <integer>
-
-Set a minimum mapping quality score of alignments to count. The mapping
-quality score is a posterior probability that the alignment was mapped
-incorrectly, and reported as a -10Log10(P) value, rounded to the nearest
-integer (range 0..255). Higher numbers are more stringent. For performance
-reasons, when counting paired-end reads, only the left alignment is
-checked. The default value is 0 (accept everything).
-
-=item --max <integer>
-
-Set a maximum number of duplicate alignments tolerated at a single position. 
-This uses the alignment start (or midpoint if recording midpoint) position 
-to determine duplicity. Note that this has no effect in coverage mode. 
-You may want to set a limit when working with random fragments (sonication) 
-to avoid PCR bias. Note that setting this value in conjunction with the --rpm 
-option may result in lower coverage than anticipated, since the pre-count 
-does not account for duplicity. The default is undefined (no limit). 
-
-=item --max_cnt <integer>
-
-In special coverage mode only, this option sets the maximum coverage count 
-at any given base. The default is 8000 (set by the bam adaptor).
-
-=item --rpm
-
-Convert the data to Reads (or Fragments) Per Million mapped. This is useful 
-for comparing read coverage between different datasets. Only alignments 
-that match the minimum mapping quality are counted. Only proper paired-end 
-alignments are counted, they are counted as one fragment. The conversion is 
-applied before converting to log, if requested. This will increase processing 
-time, as the alignments must first be counted. Note that all duplicate reads 
-are counted during the pre-count. The default is no RPM conversion. 
-
-=item --log [2|10]
-
-Transform the count to a log scale. Specify the base number, 2 or 
-10. Only really useful with Bam alignment files with high count numbers. 
-Default is to not transform the count.
+Specify the output base filename. An appropriate extension will be 
+added automatically. By default it uses the base name of the 
+input file.
 
 =item --bw
 
@@ -2479,11 +2486,16 @@ Specify whether (or not) the output file should be compressed with
 gzip. The default is compress the output unless a BigWig file is 
 requested. Disable with --nogz.
 
-=item --cpu <integer>
+item --cpu <integer>
 
 Specify the number of CPU cores to execute in parallel. This requires 
 the installation of Parallel::ForkManager. With support enabled, the 
 default is 2. Disable multi-threaded execution by setting to 1. 
+
+==item --max_cnt <integer>
+
+In special coverage mode only, this option sets the maximum coverage count 
+at any given base. The default is 8000 (set by the bam adaptor).
 
 =item --buffer <integer>
 
