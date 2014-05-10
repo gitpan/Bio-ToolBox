@@ -20,7 +20,7 @@ use Bio::ToolBox::data_helper qw(
 	parse_list
 );
 use Bio::ToolBox::db_helper::config;
-our $VERSION = '1.17';
+use constant LOG2 => log(2);
 
 # check for wiggle support
 our $WIGGLE_OK = 0;
@@ -62,6 +62,7 @@ eval {
 	$USEQ_OK = 1;
 };
 
+our $VERSION = '1.18';
 
 
 # define reusable variables
@@ -1821,8 +1822,8 @@ The keys include
   method   => The method used to combine the dataset values found
               in the defined region. Acceptable values include 
               sum, mean, median, range, stddev, min, max, rpm, 
-              and rpkm. See _get_segment_score() documentation 
-              for more info.
+              rpkm, and scores. See _get_segment_score() 
+              documentation for more info.
   chromo   => The name of the chromosome (reference sequence)
   start    => The start position of the region on the chromosome
   stop     => The stop position of the region on the chromosome
@@ -2742,6 +2743,7 @@ must be defined and presented in this order. These values include
          rpm (returns reads per million mapped, only valid with 
               bam and bigbed databases)
          rpkm (same as rpm but normalized for length in kb)
+         scores (returns an array reference of all the raw scores)
          
   [8] The strandedness of acceptable data. Genomic segments 
       established from an inherently stranded database feature 
@@ -3397,6 +3399,13 @@ sub _get_segment_score {
 		return %pos2data;
 	}
 	
+	# scores
+	elsif ($method eq 'scores') {
+		# just the scores are requested
+		# return an array reference
+		return \@scores;
+	}
+	
 	# single region score
 	else {
 		# check that we have scores
@@ -3480,12 +3489,12 @@ sub _get_segment_score {
 			# calculate the region score according to the method
 			if ($method eq 'rpkm') {
 				$region_score = 
-					( sum(@scores) * 10^9 ) / 
+					( sum(@scores) * 1000000000 ) / 
 					( ($stop - $start + 1) * $total_read_number{$dataset} );
 			}
 			elsif ($method eq 'rpm') {
 				$region_score = 
-					( sum(@scores) * 10^6 ) / $total_read_number{$dataset};
+					( sum(@scores) * 1000000 ) / $total_read_number{$dataset};
 			}
 			else {
 				# this dataset doesn't support rpm methods
@@ -3500,7 +3509,7 @@ sub _get_segment_score {
 	
 		# convert back to log2 if necessary
 		if ($log) { 
-			$region_score = log($region_score) / log(2);
+			$region_score = log($region_score) / LOG2;
 		}
 		
 		# finished

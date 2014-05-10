@@ -13,7 +13,7 @@ eval {
 	require Parallel::ForkManager;
 	$parallel = 1;
 };
-our $VERSION = '1.15';
+our $VERSION = '1.18';
 
 # Exported names
 our @ISA = qw(Exporter);
@@ -46,7 +46,7 @@ our %OPENED_BAM;
 
 
 
-### Open a bigWig database connection
+### Open a bam database connection
 sub open_bam_db {
 	my $bamfile = shift;
 	
@@ -69,7 +69,7 @@ sub open_bam_db {
 }
 
 
-
+### Check for a bam index 
 sub check_bam_index {
 	# I find that relying on -autoindex yields a flaky Bio::DB::Sam object that 
 	# doesn't always work as expected. Best to create the index BEFORE opening
