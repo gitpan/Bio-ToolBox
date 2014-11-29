@@ -28,7 +28,7 @@ use constant DATASET_HASH_LIMIT => 5001;
 		# region, and a hash returned with potentially a score for each basepair. 
 		# This may become unwieldy for very large regions, which may be better 
 		# served by separate database queries for each window.
-my $VERSION = 1.22;
+my $VERSION = 1.23;
 
 print "\n A script to collect windowed data flanking a relative position of a feature\n\n";
   
@@ -394,10 +394,6 @@ sub parallel_execution {
 			print " Interpolating missing values....\n";
 			go_interpolate_values();
 		}
-		# convert null values to zero if necessary
-		if ($method eq 'sum' or $method eq 'rpm') {
-			null_to_zeros();
-		}
 		
 		# write out result
 		my $success = $Data->save(
@@ -466,10 +462,6 @@ sub single_execution {
 	if ($smooth) {
 		print " Interpolating missing values....\n";
 		go_interpolate_values();
-	}
-	# convert null values to zero if necessary
-	if ($method eq 'sum' or $method eq 'rpm') {
-		null_to_zeros();
 	}
 
 
@@ -808,6 +800,13 @@ sub record_scores {
 		$column < $Data->number_columns; 
 		$column++
 	) {
+		
+		# record nulls if no data returned
+		unless (scalar keys %$regionscores) {
+			$row->value($column, '.');
+			next;
+		}
+		
 		# get start and stop
 		my $start = $Data->metadata($column, 'start');
 		my $stop = $Data->metadata($column, 'stop');
@@ -882,7 +881,7 @@ sub collect_long_data_window_scores {
 		$fstop,
 		$fstrand
 	) = @_;
-
+	
 	# Translate the actual reference start position based on requested 
 	# reference position and region strand
 	my $reference;
@@ -988,27 +987,6 @@ sub go_interpolate_values {
 			$col++;
 		}
 	}
-}
-
-
-
-## Convert null values to proper zero values
-sub null_to_zeros {
-	# for those methods where we expect a true zero, sum and rpm
-	# convert '.' null scores to zero
-	
-	# this wasn't done before because the null value makes the 
-	# interpolation a lot easier without having to worry about zero
-	
-	# walk through each data line and then each window
-	$Data->iterate( sub {
-		my $row = shift;
-		for (my $c = $startcolumn; $c < $Data->number_columns; $c++) {
-			if ($row->value($c) eq '.') {
-				$row->value($c, 0);
-			}
-		}
-	} );
 }
 
 

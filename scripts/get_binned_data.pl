@@ -28,7 +28,7 @@ use constant DATASET_HASH_LIMIT => 5001;
 		# region, and a hash returned with potentially a score for each basepair. 
 		# This may become unwieldy for very large regions, which may be better 
 		# served by separate database queries for each window.
-my $VERSION = 1.22;
+my $VERSION = 1.23;
 
 print "\n This script will collect binned values across features\n\n";
 
@@ -650,6 +650,12 @@ sub record_the_bin_values {
 		# across the feature's region
 		# any scores within this window will be collected and the mean 
 		# value reported
+		
+		# record nulls if no data returned
+		unless (scalar keys %$regionscores) {
+			$row->value($column, '.');
+			next;
+		}
 		
 		# convert the window start and stop coordinates (as percentages) to
 		# actual bp
